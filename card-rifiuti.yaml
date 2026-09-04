@@ -1,12 +1,11 @@
-# Contarina — CARD compatta + popup dettagli
+# Contarina — CARD piatta per tablet a muro (tutto sempre visibile)
 #
 # COME USARE: dashboard → Modifica dashboard → Aggiungi scheda → ⋮/icona YAML →
 # cancella, incolla questo file, salva.
 # Sostituisci ZONA con lo slug del tuo device (es. cornuda →
 # sensor.cornuda_raccolta_rifiuti). Trova e sostituisci "ZONA" in questo file.
 #
-# In dashboard vedi solo bottone + foto bidoni. Tap → popup #contarina-dettaglio
-# con Tile, lista, calendario e filtri.
+# Contenuto: bottone + foto bidoni + lista "Prossime raccolte per frazione".
 #
 # HACS richiesti: bubble-card, auto-entities, template-entity-row
 # Date in formato giorno-mese-anno (stato riga = %d-%m-%Y).
