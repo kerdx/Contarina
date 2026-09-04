@@ -1,7 +1,5 @@
 {
   "name": "Calendario Contarina",
   "content_in_root": false,
-  "domain": "contarina",
-  "iot_class": "local_polling",
   "homeassistant": "2026.9.0"
 }
