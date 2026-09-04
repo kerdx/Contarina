@@ -19,11 +19,23 @@ STATIC_URL = "/contarina"
 
 
 def _register_static(hass: HomeAssistant) -> None:
+    """Espone le icone su /contarina. Mai bloccante: se fallisce, si logga e basta."""
+    import logging
+
+    _LOGGER = logging.getLogger(__name__)
     if hass.data.get(f"{DOMAIN}_static"):
         return
     if hass.http is None:
         return
-    hass.http.register_static_path(STATIC_URL, str(Path(__file__).parent / "www"))
+    www = Path(__file__).parent / "www"
+    if not www.is_dir():
+        _LOGGER.debug("[%s] cartella icone assente, salto static path", DOMAIN)
+        return
+    try:
+        hass.http.register_static_path(STATIC_URL, str(www))
+    except RuntimeError as err:
+        _LOGGER.warning("[%s] static path non registrato (%s), icone non servite", DOMAIN, err)
+        return
     hass.data[f"{DOMAIN}_static"] = True
 
 
