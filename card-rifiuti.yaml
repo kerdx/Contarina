@@ -9,9 +9,8 @@
 # con Tile, lista, calendario e filtri.
 #
 # HACS richiesti: bubble-card, auto-entities, template-entity-row
-# Icone local:contarina-* da custom_icons/ in www/custom_icons (vedi custom_icons/README.md).
-# Fallback senza custom icons: mdi:trash-can, mdi:food-apple, mdi:newspaper,
-# mdi:bottle-soda, mdi:leaf.
+# Date in formato giorno-mese-anno (stato riga = %d-%m-%Y).
+# Niente icone local: da copiare: restano solo MDI e foto servite su /contarina.
 
 type: vertical-stack
 cards:
@@ -66,69 +65,6 @@ cards:
     icon: mdi:trash-can-outline
     show_header: true
     card_layout: large
-  - type: grid
-    columns: 2
-    square: false
-    cards:
-      - type: tile
-        entity: sensor.ZONA_prossimo_secco
-        name: Secco
-        color: grey
-        icon: local:contarina-secco
-        state_content:
-          - state
-          - giorni_mancanti
-        tap_action:
-          action: more-info
-      - type: tile
-        entity: sensor.ZONA_prossimo_umido
-        name: Umido
-        color: amber
-        icon: local:contarina-umido
-        state_content:
-          - state
-          - giorni_mancanti
-        tap_action:
-          action: more-info
-      - type: tile
-        entity: sensor.ZONA_prossima_carta
-        name: Carta
-        color: yellow
-        icon: local:contarina-carta
-        state_content:
-          - state
-          - giorni_mancanti
-        tap_action:
-          action: more-info
-      - type: tile
-        entity: sensor.ZONA_prossimo_vpl
-        name: VPL
-        color: blue
-        icon: local:contarina-vpl
-        state_content:
-          - state
-          - giorni_mancanti
-        tap_action:
-          action: more-info
-      - type: tile
-        entity: sensor.ZONA_prossimo_vegetale
-        name: Vegetale
-        color: green
-        icon: local:contarina-vegetale
-        state_content:
-          - state
-          - giorni_mancanti
-        tap_action:
-          action: more-info
-      - type: tile
-        entity: sensor.ZONA_prossima_raccolta
-        name: Prossima raccolta
-        color: primary
-        state_content:
-          - state
-          - giorni_mancanti
-        tap_action:
-          action: more-info
   - type: custom:auto-entities
     card:
       type: entities
@@ -139,6 +75,9 @@ cards:
         - entity_id: sensor.ZONA_prossimo_secco
           options:
             type: custom:template-entity-row
+            state: >-
+              {% set d = states(config.entity) %}
+              {{ as_timestamp(d) | timestamp_custom('%d-%m-%Y') if d not in ['unknown', 'unavailable', ''] else '—' }}
             secondary: >-
               {% set g = state_attr(config.entity, 'giorni_mancanti') %}
               {% if g == 0 %}Oggi — {{ state_attr(config.entity, 'tipi_giorno') }}
@@ -148,6 +87,9 @@ cards:
         - entity_id: sensor.ZONA_prossimo_umido
           options:
             type: custom:template-entity-row
+            state: >-
+              {% set d = states(config.entity) %}
+              {{ as_timestamp(d) | timestamp_custom('%d-%m-%Y') if d not in ['unknown', 'unavailable', ''] else '—' }}
             secondary: >-
               {% set g = state_attr(config.entity, 'giorni_mancanti') %}
               {% if g == 0 %}Oggi — {{ state_attr(config.entity, 'tipi_giorno') }}
@@ -157,6 +99,9 @@ cards:
         - entity_id: sensor.ZONA_prossima_carta
           options:
             type: custom:template-entity-row
+            state: >-
+              {% set d = states(config.entity) %}
+              {{ as_timestamp(d) | timestamp_custom('%d-%m-%Y') if d not in ['unknown', 'unavailable', ''] else '—' }}
             secondary: >-
               {% set g = state_attr(config.entity, 'giorni_mancanti') %}
               {% if g == 0 %}Oggi — {{ state_attr(config.entity, 'tipi_giorno') }}
@@ -166,6 +111,9 @@ cards:
         - entity_id: sensor.ZONA_prossimo_vpl
           options:
             type: custom:template-entity-row
+            state: >-
+              {% set d = states(config.entity) %}
+              {{ as_timestamp(d) | timestamp_custom('%d-%m-%Y') if d not in ['unknown', 'unavailable', ''] else '—' }}
             secondary: >-
               {% set g = state_attr(config.entity, 'giorni_mancanti') %}
               {% if g == 0 %}Oggi — {{ state_attr(config.entity, 'tipi_giorno') }}
@@ -175,6 +123,9 @@ cards:
         - entity_id: sensor.ZONA_prossimo_vegetale
           options:
             type: custom:template-entity-row
+            state: >-
+              {% set d = states(config.entity) %}
+              {{ as_timestamp(d) | timestamp_custom('%d-%m-%Y') if d not in ['unknown', 'unavailable', ''] else '—' }}
             secondary: >-
               {% set g = state_attr(config.entity, 'giorni_mancanti') %}
               {% if g == 0 %}Oggi — {{ state_attr(config.entity, 'tipi_giorno') }}
