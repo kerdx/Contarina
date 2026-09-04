@@ -24,12 +24,7 @@ cards:
     show_name: true
     icon: mdi:trash-can-outline
     tap_action:
-      action: navigate
-      navigation_path: "#contarina-dettaglio"
-    button_action:
-      tap_action:
-        action: navigate
-        navigation_path: "#contarina-dettaglio"
+      action: more-info
     styles: |-
       .bubble-button-card-container {
         border-radius: 20px !important;
@@ -58,13 +53,6 @@ cards:
       {% else %}
       Niente da esporre.
       {% endif %}
-  - type: custom:bubble-card
-    card_type: pop-up
-    hash: "#contarina-dettaglio"
-    name: Dettaglio raccolta
-    icon: mdi:trash-can-outline
-    show_header: true
-    card_layout: large
   - type: custom:auto-entities
     card:
       type: entities
