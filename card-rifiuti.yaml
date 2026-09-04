@@ -1,16 +1,17 @@
-# Contarina — CARD singola da aggiungere a una dashboard esistente
+# Contarina — CARD compatta + popup dettagli
 #
 # COME USARE: dashboard → Modifica dashboard → Aggiungi scheda → ⋮/icona YAML →
 # cancella, incolla questo file, salva.
 # Sostituisci ZONA con lo slug del tuo device (es. cornuda →
 # sensor.cornuda_raccolta_rifiuti). Trova e sostituisci "ZONA" in questo file.
 #
+# In dashboard vedi solo bottone + foto bidoni. Tap → popup #contarina-dettaglio
+# con Tile, lista, calendario e filtri.
+#
 # HACS richiesti: bubble-card, auto-entities, template-entity-row
 # Icone local:contarina-* da custom_icons/ in www/custom_icons (vedi custom_icons/README.md).
 # Fallback senza custom icons: mdi:trash-can, mdi:food-apple, mdi:newspaper,
 # mdi:bottle-soda, mdi:leaf.
-# Nota: i badge stasera/oggi sono da vista (vedi dashboard-rifiuti.yaml),
-# qui dentro non ci stanno — in compenso ci sono i 2 binary sensor nell'entities.
 
 type: vertical-stack
 cards:
@@ -24,11 +25,47 @@ cards:
     show_name: true
     icon: mdi:trash-can-outline
     tap_action:
-      action: more-info
+      action: navigate
+      navigation_path: "#contarina-dettaglio"
+    button_action:
+      tap_action:
+        action: navigate
+        navigation_path: "#contarina-dettaglio"
     styles: |-
       .bubble-button-card-container {
         border-radius: 20px !important;
       }
+  - type: markdown
+    content: >
+      {% set tipi = state_attr('sensor.ZONA_raccolta_rifiuti', 'tipi_lista') or [] %}
+      {% if tipi %}
+      <div style="display:flex; gap:10px; justify-content:center; text-align:center;">
+        {% if 'secco' in tipi %}
+        <div style="flex:1;"><img src="/contarina/contarina-secco.svg" style="width:100%; max-width:90px;"><br><b>Secco</b></div>
+        {% endif %}
+        {% if 'umido' in tipi %}
+        <div style="flex:1;"><img src="/contarina/contarina-umido.svg" style="width:100%; max-width:90px;"><br><b>Umido</b></div>
+        {% endif %}
+        {% if 'carta' in tipi %}
+        <div style="flex:1;"><img src="/contarina/contarina-carta.svg" style="width:100%; max-width:90px;"><br><b>Carta</b></div>
+        {% endif %}
+        {% if 'vpl' in tipi %}
+        <div style="flex:1;"><img src="/contarina/contarina-vpl.svg" style="width:100%; max-width:90px;"><br><b>VPL</b></div>
+        {% endif %}
+        {% if 'vegetale' in tipi %}
+        <div style="flex:1;"><img src="/contarina/contarina-vegetale.svg" style="width:100%; max-width:90px;"><br><b>Vegetale</b></div>
+        {% endif %}
+      </div>
+      {% else %}
+      Niente da esporre.
+      {% endif %}
+  - type: custom:bubble-card
+    card_type: pop-up
+    hash: "#contarina-dettaglio"
+    name: Dettaglio raccolta
+    icon: mdi:trash-can-outline
+    show_header: true
+    card_layout: large
   - type: grid
     columns: 2
     square: false
