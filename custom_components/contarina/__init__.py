@@ -32,8 +32,14 @@ def _register_static(hass: HomeAssistant) -> None:
         _LOGGER.debug("[%s] cartella icone assente, salto static path", DOMAIN)
         return
     try:
-        hass.http.register_static_path(STATIC_URL, str(www))
-    except RuntimeError as err:
+        register_many = getattr(hass.http, "async_register_static_paths", None)
+        if register_many is not None:
+            from homeassistant.components.http import StaticPathConfig
+
+            register_many([StaticPathConfig(STATIC_URL, str(www), True)])
+        else:  # HA vecchi
+            hass.http.register_static_path(STATIC_URL, str(www))
+    except (RuntimeError, AttributeError) as err:
         _LOGGER.warning("[%s] static path non registrato (%s), icone non servite", DOMAIN, err)
         return
     hass.data[f"{DOMAIN}_static"] = True

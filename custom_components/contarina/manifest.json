@@ -1,12 +1,14 @@
 {
   "domain": "contarina",
   "name": "Calendario Contarina",
-  "codeowners": ["@kerdx"],
+  "codeowners": [
+    "@kerdx"
+  ],
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/kerdx/Contarina",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/kerdx/Contarina/issues",
   "requirements": [],
-  "version": "2.5.3"
+  "version": "2.5.4"
 }
