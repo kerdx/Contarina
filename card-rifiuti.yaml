@@ -76,8 +76,9 @@ cards:
           options:
             type: custom:template-entity-row
             state: >-
-              {% set d = states(config.entity) %}
-              {{ as_timestamp(d) | timestamp_custom('%d-%m-%Y') if d not in ['unknown', 'unavailable', ''] else '—' }}
+              {% set d = states(config.entity) %}{% if d in ['unknown', 'unavailable', ''] %}—{% else
+              %}{{ ['Lun.', 'Mar.', 'Merc.', 'Gio.', 'Ven.', 'Sab.', 'Dom.'][(as_timestamp(d) | timestamp_custom('%w') | int + 6) % 7] }} {{
+              as_timestamp(d) | timestamp_custom('%d-%m-%Y') }}{% endif %}
             secondary: >-
               {% set g = state_attr(config.entity, 'giorni_mancanti') %}
               {% if g == 0 %}Oggi — {{ state_attr(config.entity, 'tipi_giorno') }}
@@ -88,8 +89,9 @@ cards:
           options:
             type: custom:template-entity-row
             state: >-
-              {% set d = states(config.entity) %}
-              {{ as_timestamp(d) | timestamp_custom('%d-%m-%Y') if d not in ['unknown', 'unavailable', ''] else '—' }}
+              {% set d = states(config.entity) %}{% if d in ['unknown', 'unavailable', ''] %}—{% else
+              %}{{ ['Lun.', 'Mar.', 'Merc.', 'Gio.', 'Ven.', 'Sab.', 'Dom.'][(as_timestamp(d) | timestamp_custom('%w') | int + 6) % 7] }} {{
+              as_timestamp(d) | timestamp_custom('%d-%m-%Y') }}{% endif %}
             secondary: >-
               {% set g = state_attr(config.entity, 'giorni_mancanti') %}
               {% if g == 0 %}Oggi — {{ state_attr(config.entity, 'tipi_giorno') }}
@@ -100,8 +102,9 @@ cards:
           options:
             type: custom:template-entity-row
             state: >-
-              {% set d = states(config.entity) %}
-              {{ as_timestamp(d) | timestamp_custom('%d-%m-%Y') if d not in ['unknown', 'unavailable', ''] else '—' }}
+              {% set d = states(config.entity) %}{% if d in ['unknown', 'unavailable', ''] %}—{% else
+              %}{{ ['Lun.', 'Mar.', 'Merc.', 'Gio.', 'Ven.', 'Sab.', 'Dom.'][(as_timestamp(d) | timestamp_custom('%w') | int + 6) % 7] }} {{
+              as_timestamp(d) | timestamp_custom('%d-%m-%Y') }}{% endif %}
             secondary: >-
               {% set g = state_attr(config.entity, 'giorni_mancanti') %}
               {% if g == 0 %}Oggi — {{ state_attr(config.entity, 'tipi_giorno') }}
@@ -112,8 +115,9 @@ cards:
           options:
             type: custom:template-entity-row
             state: >-
-              {% set d = states(config.entity) %}
-              {{ as_timestamp(d) | timestamp_custom('%d-%m-%Y') if d not in ['unknown', 'unavailable', ''] else '—' }}
+              {% set d = states(config.entity) %}{% if d in ['unknown', 'unavailable', ''] %}—{% else
+              %}{{ ['Lun.', 'Mar.', 'Merc.', 'Gio.', 'Ven.', 'Sab.', 'Dom.'][(as_timestamp(d) | timestamp_custom('%w') | int + 6) % 7] }} {{
+              as_timestamp(d) | timestamp_custom('%d-%m-%Y') }}{% endif %}
             secondary: >-
               {% set g = state_attr(config.entity, 'giorni_mancanti') %}
               {% if g == 0 %}Oggi — {{ state_attr(config.entity, 'tipi_giorno') }}
@@ -124,8 +128,9 @@ cards:
           options:
             type: custom:template-entity-row
             state: >-
-              {% set d = states(config.entity) %}
-              {{ as_timestamp(d) | timestamp_custom('%d-%m-%Y') if d not in ['unknown', 'unavailable', ''] else '—' }}
+              {% set d = states(config.entity) %}{% if d in ['unknown', 'unavailable', ''] %}—{% else
+              %}{{ ['Lun.', 'Mar.', 'Merc.', 'Gio.', 'Ven.', 'Sab.', 'Dom.'][(as_timestamp(d) | timestamp_custom('%w') | int + 6) % 7] }} {{
+              as_timestamp(d) | timestamp_custom('%d-%m-%Y') }}{% endif %}
             secondary: >-
               {% set g = state_attr(config.entity, 'giorni_mancanti') %}
               {% if g == 0 %}Oggi — {{ state_attr(config.entity, 'tipi_giorno') }}
