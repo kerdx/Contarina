@@ -141,9 +141,3 @@ cards:
     sort:
       method: state
     show_empty: true
-  - type: button
-    entity: button.ZONA_aggiorna_calendario
-    name: Aggiorna calendario
-    icon: mdi:refresh
-    tap_action:
-      action: toggle
