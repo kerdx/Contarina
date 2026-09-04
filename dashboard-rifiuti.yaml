@@ -8,8 +8,8 @@
 #   switch.giavera_del_montello_filtro_secco
 # Trova e sostituisci "ZONA" in questo file.
 #
-# HACS richiesti: mushroom, auto-entities, template-entity-row
-# (Bubble resta solo nella variante dashboard-example-bubble.yaml / popup.)
+# HACS richiesti: bubble-card, auto-entities, template-entity-row
+# (Niente mushroom: intestazione con Bubble button sullo stesso sensore.)
 # Icone local:contarina-* da custom_icons/ in www/custom_icons (vedi custom_icons/README.md).
 # Fallback senza custom icons: sostituisci con mdi:trash-can, mdi:food-apple,
 # mdi:newspaper, mdi:bottle-soda, mdi:leaf.
@@ -34,19 +34,21 @@ badges:
         entity: binary_sensor.ZONA_raccolta_oggi
         state: "on"
 cards:
-  - type: custom:mushroom-chips-card
-    chips:
-      - type: template
-        entity: sensor.ZONA_raccolta_rifiuti
-        content: "{{ states('sensor.ZONA_raccolta_rifiuti') }}"
-        icon: mdi:trash-can-outline
-        tap_action:
-          action: more-info
-      - type: entity
-        entity: binary_sensor.ZONA_esporre_stasera
-        icon: mdi:delete-alert-outline
-        content_info: state
-    alignment: center
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    entity: sensor.ZONA_raccolta_rifiuti
+    name: Raccolta rifiuti
+    show_state: true
+    show_icon: true
+    show_name: true
+    icon: mdi:trash-can-outline
+    tap_action:
+      action: more-info
+    styles: |-
+      .bubble-button-card-container {
+        border-radius: 20px !important;
+      }
 
   - type: grid
     columns: 2

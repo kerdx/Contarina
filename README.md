@@ -46,7 +46,7 @@ Vedi `dashboard-example-bubble.yaml`: bottone Bubble con `sensor.xxx_raccolta_ri
 
 ## Dashboard unificata (consigliata)
 
-`dashboard-rifiuti.yaml`: 1 vista Sections pronta — badge condizionali (stasera/oggi), chip Mushroom, Tile per frazione con `giorni_mancanti`, lista auto-entities senza Jinja manuale, calendario mese, filtri. Trova e sostituisci `ZONA` con lo slug del device. Richiede HACS: `mushroom`, `auto-entities`, `template-entity-row`. Le varianti Bubble restano negli altri 2 file. I pezzi separati sono anche in `dashboard-example-tiles.yaml` (solo Tile+chip+badge) e `dashboard-example-list.yaml` (solo lista).
+`dashboard-rifiuti.yaml`: 1 vista Sections pronta — intestazione Bubble, badge condizionali (stasera/oggi), Tile per frazione con `giorni_mancanti`, lista auto-entities senza Jinja manuale, calendario mese, filtri. Trova e sostituisci `ZONA` con lo slug del device. Richiede HACS: `bubble-card`, `auto-entities`, `template-entity-row`. Le varianti restano negli altri file. I pezzi separati sono anche in `dashboard-example-bubble.yaml` (solo Bubble+foto), `dashboard-example-tiles.yaml` (solo Tile+chip+badge) e `dashboard-example-list.yaml` (solo lista).
 
 ## Gestione entry
 
