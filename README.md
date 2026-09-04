@@ -1,4 +1,4 @@
-# Calendario Contarina v2.4
+# Calendario Contarina v2.5
 
 [![Validate](https://github.com/kerdx/Contarina/actions/workflows/validate.yml/badge.svg)](https://github.com/kerdx/Contarina/actions/workflows/validate.yml)
 [![HACS](https://img.shields.io/badge/HACS-integration-blue)](https://hacs.xyz)
@@ -62,15 +62,15 @@ Vedi `dashboard-example-bubble.yaml`: bottone Bubble con `sensor.xxx_raccolta_ri
 
 ```yaml
 automation:
-  - alias: "Avvisa secco domani"
+  - alias: "Avvisa raccolta domani"
     trigger:
       - platform: state
-        entity_id: binary_sensor.giavera_esporre_stasera
+        entity_id: binary_sensor.giavera_del_montello_esporre_stasera
         to: "on"
     action:
-      - service: notify.mobile_app
+      - service: notify.mobile_app_telefono
         data:
-          message: "{{ states('sensor.giavera_raccolta_rifiuti') }}"
+          message: "{{ states('sensor.giavera_del_montello_raccolta_rifiuti') }}"
 ```
 
 ## Note tecniche
@@ -78,3 +78,9 @@ automation:
 - Sorgente: `https://contarina.it/api/?query=genera_ics_calendari&zona={zona}&time=0700`
 - Refresh 12h + 00:05, timeout 30s, fallback cache `.storage/contarina_zona_<id>.ics`.
 - `DTSTART:YYYYMMDDTHHMMSS` → `Europe/Rome`. Zero dipendenze extra.
+
+## Risoluzione problemi
+
+- Dopo un aggiornamento HACS riavvia sempre HA, altrimenti resta caricata la versione vecchia (controlla `"version"` in `custom_components/contarina/manifest.json`).
+- Entità `unknown` dopo il setup: quasi sempre rete/DNS verso `contarina.it`. Controlla il registro con `custom_components.contarina: debug` nel logger.
+- Vedi ancora la 2.5.1 in HACS: … → Riscarica, poi riavvia.
