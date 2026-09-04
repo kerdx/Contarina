@@ -1,0 +1,107 @@
+# Contarina — vista Sections: chip Mushroom + Tile frazioni + badge condizionali
+# Sostituisci ZONA con lo slug del tuo device, es:
+#   sensor.giavera_del_montello_raccolta_rifiuti
+#   sensor.giavera_del_montello_prossimo_secco
+#   binary_sensor.giavera_del_montello_esporre_stasera
+#
+# HACS richiesti: mushroom
+# Le icone local:contarina-* richiedono custom_icons/ copiati in www/custom_icons/
+# (vedi custom_icons/README.md). Senza, usa le mdi: indicate come fallback.
+
+title: Rifiuti
+path: rifiuti
+badges:
+  - type: entity
+    entity: binary_sensor.ZONA_esporre_stasera
+    name: Esporre stasera
+    icon: mdi:delete-alert-outline
+    visibility:
+      - condition: state
+        entity: binary_sensor.ZONA_esporre_stasera
+        state: "on"
+  - type: entity
+    entity: binary_sensor.ZONA_raccolta_oggi
+    name: Raccolta oggi
+    icon: mdi:trash-can-outline
+    visibility:
+      - condition: state
+        entity: binary_sensor.ZONA_raccolta_oggi
+        state: "on"
+cards:
+  - type: custom:mushroom-chips-card
+    chips:
+      - type: template
+        entity: sensor.ZONA_raccolta_rifiuti
+        content: "{{ states('sensor.ZONA_raccolta_rifiuti') }}"
+        icon: mdi:trash-can-outline
+        tap_action:
+          action: more-info
+      - type: entity
+        entity: binary_sensor.ZONA_esporre_stasera
+        icon: mdi:delete-alert-outline
+        content_info: state
+    alignment: center
+
+  - type: grid
+    columns: 2
+    square: false
+    cards:
+      - type: tile
+        entity: sensor.ZONA_prossimo_secco
+        name: Secco
+        color: grey
+        icon: local:contarina-secco
+        state_content:
+          - state
+          - giorni_mancanti
+        tap_action:
+          action: more-info
+      - type: tile
+        entity: sensor.ZONA_prossimo_umido
+        name: Umido
+        color: amber
+        icon: local:contarina-umido
+        state_content:
+          - state
+          - giorni_mancanti
+        tap_action:
+          action: more-info
+      - type: tile
+        entity: sensor.ZONA_prossima_carta
+        name: Carta
+        color: yellow
+        icon: local:contarina-carta
+        state_content:
+          - state
+          - giorni_mancanti
+        tap_action:
+          action: more-info
+      - type: tile
+        entity: sensor.ZONA_prossimo_vpl
+        name: VPL
+        color: blue
+        icon: local:contarina-vpl
+        state_content:
+          - state
+          - giorni_mancanti
+        tap_action:
+          action: more-info
+      - type: tile
+        entity: sensor.ZONA_prossimo_vegetale
+        name: Vegetale
+        color: green
+        icon: local:contarina-vegetale
+        state_content:
+          - state
+          - giorni_mancanti
+        tap_action:
+          action: more-info
+      - type: tile
+        entity: sensor.ZONA_prossima_raccolta
+        name: Prossima raccolta
+        color: primary
+        state_content:
+          - state
+          - giorni_mancanti
+        tap_action:
+          action: more-info

@@ -1,0 +1,13 @@
+{
+  "domain": "contarina",
+  "name": "Calendario Contarina",
+  "version": "2.5.0",
+  "documentation": "https://github.com/kerdx/Contarina",
+  "issue_tracker": "https://github.com/kerdx/Contarina/issues",
+  "dependencies": [],
+  "codeowners": ["@kerdx"],
+  "requirements": [],
+  "iot_class": "local_polling",
+  "config_flow": true,
+  "homeassistant": "2026.9.0"
+}

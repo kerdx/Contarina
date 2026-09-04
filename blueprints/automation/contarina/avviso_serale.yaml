@@ -1,0 +1,66 @@
+blueprint:
+  name: Contarina — avviso sera prima
+  description: >-
+    Alle 20:00 (o orario scelto) avvisa sul telefono se domani c'è raccolta.
+    Usa il binary_sensor esporre_stasera, messaggio con tipi e foto del primo bidone.
+    Foto servite dall'integrazione: /contarina/contarina-<tipo>.svg
+    (es. /contarina/contarina-secco.svg). Niente da copiare in www/.
+  domain: automation
+  input:
+    expose_entity:
+      name: Sensore "Esporre stasera"
+      description: binary_sensor creato dall'integrazione Contarina.
+      selector:
+        entity:
+          domain: binary_sensor
+    label_entity:
+      name: Sensore "Raccolta rifiuti" (label)
+      description: Per messaggio dettagliato tipo "Domani · VPL, Umido".
+      selector:
+        entity:
+          domain: sensor
+    notify_service:
+      name: Servizio notify
+      description: Es. notify.mobile_app_telefono
+      default: notify.persistent_notification
+      selector:
+        text: {}
+    remind_time:
+      name: Orario avviso
+      default: "20:00:00"
+      selector:
+        time: {}
+    image_base:
+      name: Base URL immagini bidoni
+      description: Lascia /contarina in casa. Per notifiche fuori casa usa l'URL esterno, es. https://casa.duckdns.org/contarina.
+      default: /contarina
+      selector:
+        text: {}
+
+trigger:
+  - platform: time
+    at: !input remind_time
+
+condition:
+  - condition: state
+    entity_id: !input expose_entity
+    state: "on"
+
+action:
+  - variables:
+      label_entity: !input label_entity
+      image_base: !input image_base
+      tipi_lista: "{{ state_attr(label_entity, 'tipi_lista') or [] }}"
+      tipi: "{{ state_attr(label_entity, 'tipi') or states(label_entity) }}"
+      quando: "{{ states(label_entity) }}"
+      first_img: >-
+        {% if tipi_lista %}{{ image_base }}/contarina-{{ tipi_lista[0] }}.svg{% endif %}
+  - service: !input notify_service
+    data:
+      title: "Raccolta rifiuti: domani"
+      message: "Stasera esponi: {{ tipi }} ({{ quando }})"
+      data:
+        image: "{{ first_img }}"
+        tag: "contarina-domani"
+        group: "rifiuti"
+mode: single

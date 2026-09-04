@@ -1,0 +1,82 @@
+# Card Bubble Card "Raccolta rifiuti" con foto bidoni
+# Richiede HACS: bubble-card
+# Sensore usato: sensor.<zona>_raccolta_rifiuti (label sensor v2.1: stato "Domani · VPL, Umido")
+# Foto bidoni servite dall'integrazione: /contarina/contarina-secco.svg (ecc.)
+# Niente da copiare in www/. Sostituisci SENSOR_LABEL con il tuo, es. sensor.giavera_del_montello_raccolta_rifiuti
+#
+# Aggiornamento a mezzanotte: già gestito dall'integrazione (refresh 00:05).
+# Nessuna automazione richiesta.
+
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    entity: sensor.SENSOR_LABEL
+    name: Raccolta rifiuti
+    show_state: true
+    show_icon: true
+    show_name: true
+    icon: mdi:trash-can-outline
+    sub_button:
+      - entity: sensor.SENSOR_PROSSIMA
+        show_state: false
+        show_icon: true
+        icon: mdi:refresh
+        tap_action:
+          action: more-info
+      - entity: button.BUTTON_AGGIORNA
+        show_icon: true
+        icon: mdi:refresh
+        tap_action:
+          action: toggle
+    styles: |-
+      .bubble-button-card-container {
+        border-radius: 20px !important;
+      }
+
+  # Foto bidoni: mostra solo quelli in tipi_lista di OGGI/prossima raccolta.
+  # Si aggiorna da sola a mezzanotte quando il sensore cambia.
+  - type: markdown
+    content: >
+      {% set tipi = state_attr('sensor.SENSOR_LABEL', 'tipi_lista') or [] %}
+      {% set giorni = state_attr('sensor.SENSOR_LABEL', 'giorni_mancanti') %}
+
+      {% if not tipi %}
+        Niente da esporre.
+      {% else %}
+      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; text-align:center;">
+        {% if 'secco' in tipi %}
+        <div style="flex:1; min-width:90px;"><img src="/contarina/contarina-secco.svg" style="width:100%; max-width:110px; border-radius:16px;"><br><b>Secco</b></div>
+        {% endif %}
+        {% if 'umido' in tipi %}
+        <div style="flex:1; min-width:90px;"><img src="/contarina/contarina-umido.svg" style="width:100%; max-width:110px; border-radius:16px;"><br><b>Umido</b></div>
+        {% endif %}
+        {% if 'carta' in tipi %}
+        <div style="flex:1; min-width:90px;"><img src="/contarina/contarina-carta.svg" style="width:100%; max-width:110px; border-radius:16px;"><br><b>Carta</b></div>
+        {% endif %}
+        {% if 'vpl' in tipi %}
+        <div style="flex:1; min-width:90px;"><img src="/contarina/contarina-vpl.svg" style="width:100%; max-width:110px; border-radius:16px;"><br><b>VPL</b></div>
+        {% endif %}
+        {% if 'vegetale' in tipi %}
+        <div style="flex:1; min-width:90px;"><img src="/contarina/contarina-vegetale.svg" style="width:100%; max-width:110px; border-radius:16px;"><br><b>Vegetale</b></div>
+        {% endif %}
+      </div>
+      <div style="text-align:center; opacity:0.7; margin-top:8px;">
+      {% if giorni == 0 %} Da esporre <b>oggi</b>
+      {% elif giorni == 1 %} Da esporre <b>domani</b>
+      {% elif giorni is not none %} Tra <b>{{ giorni }}</b> giorni
+      {% endif %}
+      </div>
+      {% endif %}
+
+# --- Versione alternativa con card Picture singole (solo vista Sezioni) ---
+# Se preferisci picture entity invece del markdown, usa 5 conditional così:
+#
+#  - type: picture
+#    image: /contarina/contarina-secco.svg
+#    visibility:
+#      - condition: template
+#        value_template: "{{ 'secco' in (state_attr('sensor.SENSOR_LABEL','tipi_lista') or []) }}"
+#
+# Ripeti per umido/carta/vpl/vegetale dentro un horizontal-stack.

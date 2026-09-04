@@ -1,0 +1,114 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Seleziona il comune",
+        "description": "Scegli il comune / zona Contarina. Puoi aggiungere più comuni ripetendo la configurazione.",
+        "data": {
+          "zona": "Comune / zona"
+        }
+      },
+      "reconfigure": {
+        "title": "Cambia zona",
+        "description": "Scegli la nuova zona. I filtri restano invariati.",
+        "data": {
+          "zona": "Comune / zona"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Questa zona è già configurata."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Filtri raccolta",
+        "description": "Scegli quali frazioni mostrare in calendario e sensori.",
+        "sections": {
+          "base": {
+            "name": "Frazioni principali",
+            "description": "Raccolte settimanali più frequenti."
+          },
+          "extra": {
+            "name": "Altre frazioni",
+            "description": "Vetro-plastica e verde."
+          }
+        },
+        "data": {
+          "secco": "Secco",
+          "umido": "Umido",
+          "carta": "Carta",
+          "vpl": "VPL (Vetro-Plastica-Lattine)",
+          "vegetale": "Vegetale"
+        }
+      }
+    }
+  },
+  "entity": {
+    "calendar": {
+      "waste_calendar": {
+        "name": "Calendario rifiuti"
+      }
+    },
+    "sensor": {
+      "next_collection": {
+        "name": "Prossima raccolta"
+      },
+      "next_secco": {
+        "name": "Prossimo Secco"
+      },
+      "next_umido": {
+        "name": "Prossimo Umido"
+      },
+      "next_carta": {
+        "name": "Prossima Carta"
+      },
+      "next_vpl": {
+        "name": "Prossimo VPL"
+      },
+      "next_vegetale": {
+        "name": "Prossimo Vegetale"
+      },
+      "next_label": {
+        "name": "Raccolta rifiuti"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Aggiorna calendario"
+      }
+    },
+    "switch": {
+      "filter_secco": {
+        "name": "Filtro Secco"
+      },
+      "filter_umido": {
+        "name": "Filtro Umido"
+      },
+      "filter_carta": {
+        "name": "Filtro Carta"
+      },
+      "filter_vpl": {
+        "name": "Filtro VPL"
+      },
+      "filter_vegetale": {
+        "name": "Filtro Vegetale"
+      }
+    },
+    "binary_sensor": {
+      "expose_tonight": {
+        "name": "Esporre stasera"
+      },
+      "expose_today": {
+        "name": "Raccolta oggi"
+      }
+    }
+  },
+  "issues": {
+    "offline_cache": {
+      "title": "Contarina non raggiungibile, uso cache offline",
+      "description": "Il sito Contarina non risponde per la zona {zona}. Mostro l'ultimo calendario salvato, i dati potrebbero non essere aggiornati."
+    }
+  }
+}

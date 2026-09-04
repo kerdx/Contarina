@@ -1,0 +1,64 @@
+# Contarina — lista prossimi 5 senza Jinja manuale {{ evento(N) }}
+# HACS richiesti: auto-entities, template-entity-row
+# Sostituisci ZONA con lo slug del tuo device.
+#
+# Come funziona: invece di {{ evento(0) }}..{{ evento(4) }} su ical-sensor,
+# auto-entities trova da solo i 5 sensori per frazione e template-entity-row
+# mostra "tra X giorni" come riga secondaria. Nessuna riga da aggiungere/togliere.
+
+type: custom:auto-entities
+card:
+  type: entities
+  title: Prossime raccolte per frazione
+  show_header_toggle: false
+filter:
+  include:
+    - entity_id: sensor.ZONA_prossimo_secco
+      options:
+        type: custom:template-entity-row
+        secondary: >-
+          {% set g = state_attr(config.entity, 'giorni_mancanti') %}
+          {% if g == 0 %}Oggi — {{ state_attr(config.entity, 'tipi_giorno') }}
+          {% elif g == 1 %}Domani — {{ state_attr(config.entity, 'tipi_giorno') }}
+          {% elif g is not none %}Tra {{ g }} giorni
+          {% else %}—{% endif %}
+    - entity_id: sensor.ZONA_prossimo_umido
+      options:
+        type: custom:template-entity-row
+        secondary: >-
+          {% set g = state_attr(config.entity, 'giorni_mancanti') %}
+          {% if g == 0 %}Oggi — {{ state_attr(config.entity, 'tipi_giorno') }}
+          {% elif g == 1 %}Domani — {{ state_attr(config.entity, 'tipi_giorno') }}
+          {% elif g is not none %}Tra {{ g }} giorni
+          {% else %}—{% endif %}
+    - entity_id: sensor.ZONA_prossima_carta
+      options:
+        type: custom:template-entity-row
+        secondary: >-
+          {% set g = state_attr(config.entity, 'giorni_mancanti') %}
+          {% if g == 0 %}Oggi — {{ state_attr(config.entity, 'tipi_giorno') }}
+          {% elif g == 1 %}Domani — {{ state_attr(config.entity, 'tipi_giorno') }}
+          {% elif g is not none %}Tra {{ g }} giorni
+          {% else %}—{% endif %}
+    - entity_id: sensor.ZONA_prossimo_vpl
+      options:
+        type: custom:template-entity-row
+        secondary: >-
+          {% set g = state_attr(config.entity, 'giorni_mancanti') %}
+          {% if g == 0 %}Oggi — {{ state_attr(config.entity, 'tipi_giorno') }}
+          {% elif g == 1 %}Domani — {{ state_attr(config.entity, 'tipi_giorno') }}
+          {% elif g is not none %}Tra {{ g }} giorni
+          {% else %}—{% endif %}
+    - entity_id: sensor.ZONA_prossimo_vegetale
+      options:
+        type: custom:template-entity-row
+        secondary: >-
+          {% set g = state_attr(config.entity, 'giorni_mancanti') %}
+          {% if g == 0 %}Oggi — {{ state_attr(config.entity, 'tipi_giorno') }}
+          {% elif g == 1 %}Domani — {{ state_attr(config.entity, 'tipi_giorno') }}
+          {% elif g is not none %}Tra {{ g }} giorni
+          {% else %}—{% endif %}
+  exclude: []
+sort:
+  method: state
+show_empty: true

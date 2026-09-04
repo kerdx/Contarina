@@ -1,0 +1,62 @@
+{
+  "entity": {
+    "calendar": {
+      "waste_calendar": {
+        "default": "mdi:trash-can-outline"
+      }
+    },
+    "sensor": {
+      "next_collection": {
+        "default": "mdi:calendar-clock"
+      },
+      "next_secco": {
+        "default": "mdi:trash-can"
+      },
+      "next_umido": {
+        "default": "mdi:food-apple"
+      },
+      "next_carta": {
+        "default": "mdi:newspaper"
+      },
+      "next_vpl": {
+        "default": "mdi:bottle-soda"
+      },
+      "next_vegetale": {
+        "default": "mdi:leaf"
+      },
+      "next_label": {
+        "default": "mdi:trash-can-outline"
+      }
+    },
+    "button": {
+      "refresh": {
+        "default": "mdi:refresh"
+      }
+    },
+    "switch": {
+      "filter_secco": {
+        "default": "mdi:trash-can"
+      },
+      "filter_umido": {
+        "default": "mdi:food-apple"
+      },
+      "filter_carta": {
+        "default": "mdi:newspaper"
+      },
+      "filter_vpl": {
+        "default": "mdi:bottle-soda"
+      },
+      "filter_vegetale": {
+        "default": "mdi:leaf"
+      }
+    },
+    "binary_sensor": {
+      "expose_tonight": {
+        "default": "mdi:delete-alert-outline"
+      },
+      "expose_today": {
+        "default": "mdi:trash-can-outline"
+      }
+    }
+  }
+}

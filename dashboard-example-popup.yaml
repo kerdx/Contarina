@@ -1,0 +1,64 @@
+# Popup Bubble Card Contarina — dettaglio zona
+# Richiede: bubble-card (HACS)
+# Sostituisci: SENSOR_LABEL, CALENDAR, SWITCH_* , BUTTON_AGGIORNA
+# Hash popup: #contarina-dettaglio
+#
+# Idea: in home resta solo il bottone compatto (dashboard-example-bubble.yaml),
+# tap → apre questo popup con calendario mese + prossimi 5 + filtri.
+
+type: vertical-stack
+cards:
+  # Bottone home: tap apre il popup
+  - type: custom:bubble-card
+    card_type: button
+    button_type: state
+    entity: sensor.SENSOR_LABEL
+    name: Raccolta rifiuti
+    show_state: true
+    tap_action:
+      action: navigate
+      navigation_path: "#contarina-dettaglio"
+    button_action:
+      tap_action:
+        action: navigate
+        navigation_path: "#contarina-dettaglio"
+
+  # Popup vero e proprio
+  - type: custom:bubble-card
+    card_type: pop-up
+    hash: "#contarina-dettaglio"
+    name: Dettaglio raccolta
+    icon: mdi:trash-can-outline
+    show_header: true
+    sub_button:
+      - entity: button.BUTTON_AGGIORNA
+        show_icon: true
+        tap_action:
+          action: toggle
+    card_layout: large
+
+  - type: calendar
+    entities:
+      - calendar.CALENDAR
+    initial_view: dayGridMonth
+
+  - type: markdown
+    content: >
+      {% set ns = namespace() %}
+      {% set s = states('sensor.SENSOR_LABEL') %}
+      Prossima: **{{ s }}**
+      {% set prossimi = state_attr('sensor.SENSOR_PROSSIMA', 'prossimi') or [] %}
+      {% for p in prossimi[:5] %}
+      - {{ p.data }} — {{ p.tipi }} (tra {{ p.giorni_mancanti }}g)
+      {% endfor %}
+
+  - type: entities
+    title: Filtri frazioni
+    entities:
+      - switch.SWITCH_SECCO
+      - switch.SWITCH_UMIDO
+      - switch.SWITCH_CARTA
+      - switch.SWITCH_VPL
+      - switch.SWITCH_VEGETALE
+      - binary_sensor.EXPOSE_TONIGHT
+      - binary_sensor.EXPOSE_TODAY

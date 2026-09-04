@@ -1,0 +1,114 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Select municipality",
+        "description": "Choose the Contarina municipality / zone. You can add multiple ones.",
+        "data": {
+          "zona": "Municipality / zone"
+        }
+      },
+      "reconfigure": {
+        "title": "Change zone",
+        "description": "Choose the new zone. Filters are kept.",
+        "data": {
+          "zona": "Municipality / zone"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "This zone is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Collection filters",
+        "description": "Choose which waste fractions to show in calendar and sensors.",
+        "sections": {
+          "base": {
+            "name": "Main fractions",
+            "description": "Most frequent weekly collections."
+          },
+          "extra": {
+            "name": "Other fractions",
+            "description": "Glass-plastic and green waste."
+          }
+        },
+        "data": {
+          "secco": "Dry waste",
+          "umido": "Organic",
+          "carta": "Paper",
+          "vpl": "VPL (Glass-Plastic-Cans)",
+          "vegetale": "Green waste"
+        }
+      }
+    }
+  },
+  "entity": {
+    "calendar": {
+      "waste_calendar": {
+        "name": "Waste calendar"
+      }
+    },
+    "sensor": {
+      "next_collection": {
+        "name": "Next collection"
+      },
+      "next_secco": {
+        "name": "Next dry waste"
+      },
+      "next_umido": {
+        "name": "Next organic"
+      },
+      "next_carta": {
+        "name": "Next paper"
+      },
+      "next_vpl": {
+        "name": "Next VPL"
+      },
+      "next_vegetale": {
+        "name": "Next green waste"
+      },
+      "next_label": {
+        "name": "Waste collection"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Refresh calendar"
+      }
+    },
+    "switch": {
+      "filter_secco": {
+        "name": "Dry filter"
+      },
+      "filter_umido": {
+        "name": "Organic filter"
+      },
+      "filter_carta": {
+        "name": "Paper filter"
+      },
+      "filter_vpl": {
+        "name": "VPL filter"
+      },
+      "filter_vegetale": {
+        "name": "Green filter"
+      }
+    },
+    "binary_sensor": {
+      "expose_tonight": {
+        "name": "Take out tonight"
+      },
+      "expose_today": {
+        "name": "Collection today"
+      }
+    }
+  },
+  "issues": {
+    "offline_cache": {
+      "title": "Contarina unreachable, using offline cache",
+      "description": "The Contarina website is not responding for zone {zona}. Showing the last saved calendar, data may be outdated."
+    }
+  }
+}
