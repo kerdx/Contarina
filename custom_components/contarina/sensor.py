@@ -16,6 +16,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, WASTE_ICONS, WASTE_LABELS, WASTE_TYPES
 from .coordinator import ContarinaCoordinator, WasteEvent
+from .label_text import label_when, when_attribute, weekday_name
 
 
 async def async_setup_entry(
@@ -87,7 +88,9 @@ class ContarinaNextSensor(_Base):
             "tipi": first.summary,
             "tipi_lista": list(first.types),
             "giorni_mancanti": giorni,
-            "giorno_settimana": first.start.strftime("%A"),
+            "giorno_settimana": weekday_name(
+                first.start.weekday(), self.hass.config.language
+            ),
             "zona": self.coordinator.zona_name,
             "prossimi": [
                 {
@@ -142,7 +145,9 @@ class ContarinaWasteSensor(_Base):
             "frazione": WASTE_LABELS[self._key],
             "filtro_attivo": filt_on,
             "giorni_mancanti": (nxt.start.date() - today).days,
-            "giorno_settimana": nxt.start.strftime("%A"),
+            "giorno_settimana": weekday_name(
+                nxt.start.weekday(), self.hass.config.language
+            ),
             "tipi_giorno": nxt.summary,
         }
 
@@ -179,15 +184,13 @@ class ContarinaLabelSensor(_Base):
         first, giorni = self._first()
         if first is None:
             return None
-        if giorni == 0:
-            quando = "Oggi"
-        elif giorni == 1:
-            quando = "Domani"
-        elif giorni == 2:
-            quando = "Dopodomani"
+        if giorni <= 2:
+            quando = label_when(giorni, self.hass.config.language)
         else:
-            # es. "Lunedì 15" — data completa resta negli attributi
-            quando = first.start.strftime("%A %d").capitalize()
+            weekday = weekday_name(
+                first.start.weekday(), self.hass.config.language, capitalize=True
+            )
+            quando = f"{weekday} {first.start.day}"
         return f"{quando} · {first.summary}"
 
     @property
@@ -196,9 +199,12 @@ class ContarinaLabelSensor(_Base):
         if first is None:
             return {}
         return {
-            "quando": "oggi" if giorni == 0 else "domani" if giorni == 1 else "prossimi_giorni",
+            "quando": when_attribute(giorni, self.hass.config.language),
             "giorni_mancanti": giorni,
             "data": first.start.date().isoformat(),
+            "giorno_settimana": weekday_name(
+                first.start.weekday(), self.hass.config.language
+            ),
             "tipi": first.summary,
             "tipi_lista": list(first.types),
             "zona": self.coordinator.zona_name,

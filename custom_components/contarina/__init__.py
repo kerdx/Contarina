@@ -10,6 +10,7 @@ from homeassistant.helpers.event import async_track_time_change
 
 from .const import DOMAIN
 from .coordinator import ContarinaCoordinator
+from .static_paths import async_register_static
 
 PLATFORMS = ["calendar", "sensor", "binary_sensor", "button", "switch"]
 
@@ -18,35 +19,8 @@ PLATFORMS = ["calendar", "sensor", "binary_sensor", "button", "switch"]
 STATIC_URL = "/contarina"
 
 
-def _register_static(hass: HomeAssistant) -> None:
-    """Espone le icone su /contarina. Mai bloccante: se fallisce, si logga e basta."""
-    import logging
-
-    _LOGGER = logging.getLogger(__name__)
-    if hass.data.get(f"{DOMAIN}_static"):
-        return
-    if hass.http is None:
-        return
-    www = Path(__file__).parent / "www"
-    if not www.is_dir():
-        _LOGGER.debug("[%s] cartella icone assente, salto static path", DOMAIN)
-        return
-    try:
-        register_many = getattr(hass.http, "async_register_static_paths", None)
-        if register_many is not None:
-            from homeassistant.components.http import StaticPathConfig
-
-            register_many([StaticPathConfig(STATIC_URL, str(www), True)])
-        else:  # HA vecchi
-            hass.http.register_static_path(STATIC_URL, str(www))
-    except (RuntimeError, AttributeError) as err:
-        _LOGGER.warning("[%s] static path non registrato (%s), icone non servite", DOMAIN, err)
-        return
-    hass.data[f"{DOMAIN}_static"] = True
-
-
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    _register_static(hass)
+    await async_register_static(hass, DOMAIN, STATIC_URL, Path(__file__).parent / "www")
     coordinator = ContarinaCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.config_entries import ConfigEntry
@@ -48,7 +48,7 @@ class ContarinaCalendar(CoordinatorEntity[ContarinaCoordinator], CalendarEntity)
             return None
         now = datetime.now(tz=ROME_TZ)
         for ev in self.coordinator.events:
-            if now is None or ev.end >= now:
+            if ev.end.astimezone(UTC) >= now.astimezone(UTC):
                 return CalendarEvent(
                     summary=ev.summary,
                     start=ev.start,
@@ -63,7 +63,10 @@ class ContarinaCalendar(CoordinatorEntity[ContarinaCoordinator], CalendarEntity)
     ) -> list[CalendarEvent]:
         out: list[CalendarEvent] = []
         for ev in self.coordinator.events:
-            if ev.start < end_date and ev.end > start_date:
+            if (
+                ev.start.astimezone(UTC) < end_date.astimezone(UTC)
+                and ev.end.astimezone(UTC) > start_date.astimezone(UTC)
+            ):
                 out.append(
                     CalendarEvent(
                         summary=ev.summary,

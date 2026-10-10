@@ -1,6 +1,7 @@
 """Test funzioni pure parser Contarina — nessun HA richiesto, nessun network."""
 
 import importlib.util
+from datetime import UTC, timedelta
 from pathlib import Path
 import sys as _sys
 
@@ -15,6 +16,7 @@ clean_summary = _mod.clean_summary
 detect_types = _mod.detect_types
 filter_events = _mod.filter_events
 parse_ics = _mod.parse_ics
+parse_ics_candidate = _mod.parse_ics_candidate
 
 SAMPLE = """BEGIN:VCALENDAR
 VERSION:2.0
@@ -96,3 +98,94 @@ def test_filter_drops_empty():
         {"secco": False, "umido": False, "carta": False, "vpl": False, "vegetale": False},
     )
     assert filt == []
+
+
+def test_parse_ics_parameters_utc_and_text_escapes():
+    content = r"""BEGIN:VCALENDAR
+BEGIN:VEVENT
+DTSTART;TZID=Europe/Rome:20261001T060000
+DTEND;TZID=Europe/Rome:20261001T070000
+SUMMARY;LANGUAGE=it:Giavera del Montello: VPL\, Umido
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261002
+DTEND;VALUE=DATE:20261003
+SUMMARY:Giavera del Montello: Carta
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20261004T040000Z
+SUMMARY:Giavera del Montello: Secco
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20261005
+SUMMARY:Giavera del Montello: Vegetale
+END:VEVENT
+END:VCALENDAR
+"""
+    events = parse_ics(content, 9)
+
+    assert len(events) == 4
+    assert events[0].summary == "VPL, Umido"
+    assert events[0].start.hour == 6
+    assert events[1].start.hour == 0
+    assert events[1].end.day == 3  # DTEND DATE è esclusivo
+    assert events[2].start.hour == 6  # 04:00 UTC convertito in Europe/Rome
+    assert events[3].end.day == 6  # DTSTART DATE senza DTEND dura l'intera giornata
+
+
+def test_parse_ics_candidate_rejects_bad_feed_but_accepts_empty_calendar():
+    empty_calendar = (
+        "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Contarina//EN\nEND:VCALENDAR\n"
+    )
+    assert parse_ics_candidate(SAMPLE, 9) == parse_ics(SAMPLE, 9)
+    assert parse_ics_candidate(empty_calendar, 9) == []
+
+    missing_calendar_envelope = """BEGIN:VEVENT
+DTSTART:20260929T060000
+SUMMARY:Giavera del Montello: Umido
+END:VEVENT
+"""
+    no_recognized_events = """BEGIN:VCALENDAR
+BEGIN:VEVENT
+DTSTART:20260929T060000
+SUMMARY:Giavera del Montello: Ingombranti
+END:VEVENT
+END:VCALENDAR
+"""
+    assert parse_ics_candidate(missing_calendar_envelope, 9) is None
+    assert parse_ics_candidate(no_recognized_events, 9) is None
+
+
+def test_parse_ics_candidate_rejects_invalid_dtend():
+    invalid_dtend = """BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Contarina//EN
+BEGIN:VEVENT
+DTSTART:20260929T060000
+DTEND;TZID=Unknown/Zone:20260929T070000
+SUMMARY:Giavera del Montello: Umido
+END:VEVENT
+END:VCALENDAR
+    """
+    assert parse_ics_candidate(invalid_dtend, 9) is None
+
+
+def test_parse_ics_keeps_repeated_dst_hour_order_by_utc_instant():
+    # In Europe/Rome, 02:30 occurs twice when DST ends on 2026-10-25.
+    content = """BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Contarina//EN
+BEGIN:VEVENT
+DTSTART:20261025T003000Z
+DTEND:20261025T013000Z
+SUMMARY:Giavera del Montello: Umido
+END:VEVENT
+END:VCALENDAR
+"""
+    events = parse_ics_candidate(content, 9)
+
+    assert events is not None and len(events) == 1
+    event = events[0]
+    assert event.start.hour == event.end.hour == 2
+    assert event.start.utcoffset() != event.end.utcoffset()
+    assert event.end.astimezone(UTC) - event.start.astimezone(UTC) == timedelta(hours=1)

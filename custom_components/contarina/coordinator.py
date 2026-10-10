@@ -20,9 +20,8 @@ from .const import (
     REQUEST_TIMEOUT,
     UPDATE_INTERVAL_HOURS,
     ZONE_MAP,
-    enabled_types,
 )
-from .parser import WasteEvent, filter_events, parse_ics
+from .parser import WasteEvent, filter_events, parse_ics_candidate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,8 +62,7 @@ class ContarinaCoordinator(DataUpdateCoordinator[list[WasteEvent]]):
             if not os.path.exists(self._cache_path):
                 return None
             with open(self._cache_path, encoding="utf-8") as f:
-                content = f.read()
-                return content if "BEGIN:VEVENT" in content else None
+                return f.read()
         except OSError as err:
             _LOGGER.debug("[%s] lettura cache fallita: %s", DOMAIN, err)
             return None
@@ -96,31 +94,57 @@ class ContarinaCoordinator(DataUpdateCoordinator[list[WasteEvent]]):
         except Exception as err:
             _LOGGER.warning("[%s] errore download (%s), provo cache", DOMAIN, err)
 
-        if content and "BEGIN:VEVENT" in content:
-            await self.hass.async_add_executor_job(self._write_cache_sync, content)
-            ir.async_delete_issue(self.hass, DOMAIN, f"offline_cache_zona_{self.zona}")
-        else:
-            content = await self.hass.async_add_executor_job(self._read_cache_sync)
-            if content:
-                _LOGGER.warning(
-                    "[%s] zona %s: uso cache offline", DOMAIN, self.zona
+        events: list[WasteEvent] | None = None
+        if content is not None:
+            try:
+                events = await self.hass.async_add_executor_job(
+                    parse_ics_candidate, content, self.zona
                 )
-                ir.async_create_issue(
-                    self.hass,
+            except Exception as err:
+                _LOGGER.warning(
+                    "[%s] risposta ICS non interpretabile (%s), provo cache",
                     DOMAIN,
-                    f"offline_cache_zona_{self.zona}",
-                    is_fixable=False,
-                    severity=IssueSeverity.WARNING,
-                    translation_key="offline_cache",
-                    translation_placeholders={"zona": self.zona_name},
+                    err,
+                )
+
+            if events is not None:
+                # Aggiorna la cache solo dopo aver verificato envelope e parsing.
+                await self.hass.async_add_executor_job(self._write_cache_sync, content)
+                ir.async_delete_issue(
+                    self.hass, DOMAIN, f"offline_cache_zona_{self.zona}"
                 )
             else:
-                raise UpdateFailed("Download fallito e nessuna cache disponibile")
+                _LOGGER.warning("[%s] risposta ICS non valida, provo cache", DOMAIN)
 
-        try:
-            events = await self.hass.async_add_executor_job(parse_ics, content, self.zona)
-        except Exception as err:
-            raise UpdateFailed(f"Errore parsing ICS: {err}") from err
+        if events is None:
+            cached_content = await self.hass.async_add_executor_job(
+                self._read_cache_sync
+            )
+            if cached_content is not None:
+                try:
+                    events = await self.hass.async_add_executor_job(
+                        parse_ics_candidate, cached_content, self.zona
+                    )
+                except Exception as err:
+                    _LOGGER.warning(
+                        "[%s] cache ICS non interpretabile (%s)", DOMAIN, err
+                    )
+
+            if events is None:
+                raise UpdateFailed(
+                    "Download fallito o non valido e nessuna cache valida disponibile"
+                )
+
+            _LOGGER.warning("[%s] zona %s: uso cache offline", DOMAIN, self.zona)
+            ir.async_create_issue(
+                self.hass,
+                DOMAIN,
+                f"offline_cache_zona_{self.zona}",
+                is_fixable=False,
+                severity=IssueSeverity.WARNING,
+                translation_key="offline_cache",
+                translation_placeholders={"zona": self.zona_name},
+            )
 
         if not events:
             _LOGGER.warning("[%s] zona %s: nessun evento trovato", DOMAIN, self.zona)
@@ -132,6 +156,4 @@ class ContarinaCoordinator(DataUpdateCoordinator[list[WasteEvent]]):
                 self.zona_name,
                 len(events),
             )
-        # Filtra con default True se options vuote (prima installazione)
-        _ = enabled_types(self.config_entry.options)
         return events

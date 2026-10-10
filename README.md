@@ -1,4 +1,4 @@
-# Calendario Contarina v2.5
+# Calendario Contarina v2.5.6
 
 [![Validate](https://github.com/kerdx/Contarina/actions/workflows/validate.yml/badge.svg)](https://github.com/kerdx/Contarina/actions/workflows/validate.yml)
 [![HACS](https://img.shields.io/badge/HACS-integration-blue)](https://hacs.xyz)
@@ -40,6 +40,9 @@ Icone bidoni servite dall'integrazione su `/contarina/contarina-<tipo>.svg`: nie
 - `binary_sensor.<zona>_raccolta_oggi` — `on` se raccolta oggi.
 - `button.<zona>_aggiorna_calendario`, `switch.<zona>_filtro_*` (5).
 
+Il sensore etichetta e gli attributi dei giorni seguono la lingua di Home Assistant
+(italiano e inglese; per le altre lingue viene usato l'inglese).
+
 ## Card Bubble (titolo + foto, auto a mezzanotte)
 
 Vedi `dashboard-example-bubble.yaml`: bottone Bubble con `sensor.xxx_raccolta_rifiuti` + Markdown foto da `tipi_lista`. `dashboard-example-popup.yaml`: tap → popup con calendario mese + prossimi 5 + filtri.
@@ -77,10 +80,12 @@ automation:
 
 - Sorgente: `https://contarina.it/api/?query=genera_ics_calendari&zona={zona}&time=0700`
 - Refresh 12h + 00:05, timeout 30s, fallback cache `.storage/contarina_zona_<id>.ics`.
-- `DTSTART:YYYYMMDDTHHMMSS` → `Europe/Rome`. Zero dipendenze extra.
+- Parser senza dipendenze extra: date locali in `Europe/Rome`, `TZID` riconosciuti,
+  UTC (`Z`), date `VALUE=DATE`, righe piegate ed escape testuali. Una risposta ICS
+  malformata o non interpretabile non sostituisce l'ultima cache valida.
 
 ## Risoluzione problemi
 
 - Dopo un aggiornamento HACS riavvia sempre HA, altrimenti resta caricata la versione vecchia (controlla `"version"` in `custom_components/contarina/manifest.json`).
 - Entità `unknown` dopo il setup: quasi sempre rete/DNS verso `contarina.it`. Controlla il registro con `custom_components.contarina: debug` nel logger.
-- Vedi ancora la 2.5.1 in HACS: … → Riscarica, poi riavvia.
+- Vedi ancora una versione precedente in HACS: … → Riscarica, poi riavvia.
