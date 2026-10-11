@@ -7,16 +7,17 @@ import sys
 
 _ROOT = Path(__file__).resolve().parents[1]
 _PACKAGE_DIR = _ROOT / "custom_components" / "contarina"
-_package_spec = importlib.util.spec_from_loader("contarina_pure", loader=None)
+_PACKAGE_NAME = "contarina_waste_types_test_package"
+_package_spec = importlib.util.spec_from_loader(_PACKAGE_NAME, loader=None)
 assert _package_spec
 _package = importlib.util.module_from_spec(_package_spec)
 _package.__path__ = [str(_PACKAGE_DIR)]
-sys.modules["contarina_pure"] = _package
+sys.modules[_PACKAGE_NAME] = _package
 
 
 def _load(name: str):
     spec = importlib.util.spec_from_file_location(
-        f"contarina_pure.{name}", _PACKAGE_DIR / f"{name}.py"
+        f"{_PACKAGE_NAME}.{name}", _PACKAGE_DIR / f"{name}.py"
     )
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)

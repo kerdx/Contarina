@@ -7,20 +7,21 @@ import sys as _sys
 
 _PARSER = Path(__file__).resolve().parents[1] / "custom_components" / "contarina" / "parser.py"
 _WASTE_TYPES = _PARSER.with_name("waste_types.py")
-_package_spec = importlib.util.spec_from_loader("contarina_pure", loader=None)
+_PACKAGE_NAME = "contarina_parser_test_package"
+_package_spec = importlib.util.spec_from_loader(_PACKAGE_NAME, loader=None)
 assert _package_spec
 _package = importlib.util.module_from_spec(_package_spec)
 _package.__path__ = [str(_PARSER.parent)]
-_sys.modules["contarina_pure"] = _package
-_types_spec = importlib.util.spec_from_file_location("contarina_pure.waste_types", _WASTE_TYPES)
+_sys.modules[_PACKAGE_NAME] = _package
+_types_spec = importlib.util.spec_from_file_location(f"{_PACKAGE_NAME}.waste_types", _WASTE_TYPES)
 assert _types_spec and _types_spec.loader
 _types_mod = importlib.util.module_from_spec(_types_spec)
-_sys.modules["contarina_pure.waste_types"] = _types_mod
+_sys.modules[_types_spec.name] = _types_mod
 _types_spec.loader.exec_module(_types_mod)
-_spec = importlib.util.spec_from_file_location("contarina_pure.parser", _PARSER)
+_spec = importlib.util.spec_from_file_location(f"{_PACKAGE_NAME}.parser", _PARSER)
 assert _spec and _spec.loader
 _mod = importlib.util.module_from_spec(_spec)
-_sys.modules["contarina_parser"] = _mod
+_sys.modules[_spec.name] = _mod
 _spec.loader.exec_module(_mod)
 
 clean_summary = _mod.clean_summary
