@@ -54,6 +54,7 @@ def _extract_event_blocks(content: str) -> tuple[list[str], bool]:
     valid = True
     root_count = 0
     root_closed = False
+    null_trailer_seen = False
     allowed = {
         "VCALENDAR": {"VEVENT", "VTODO", "VJOURNAL", "VFREEBUSY", "VTIMEZONE"},
         "VEVENT": {"VALARM"}, "VTODO": {"VALARM"},
@@ -101,7 +102,10 @@ def _extract_event_blocks(content: str) -> tuple[list[str], bool]:
                 root_closed = True
             continue
         if not stack:
-            valid = False
+            if root_closed and not null_trailer_seen and marker == "NULL":
+                null_trailer_seen = True
+            else:
+                valid = False
         else:
             # Ogni riga non vuota in un componente deve essere una content-line
             # (nome non vuoto seguito dal separatore ':'). Le righe strutturali

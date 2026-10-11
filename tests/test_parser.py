@@ -76,6 +76,15 @@ def test_parse_ics_basic():
     assert all(e.start.tzinfo is not None for e in evs)
 
 
+def test_candidate_allows_only_null_trailer_after_calendar():
+    with_trailer = SAMPLE + "\nnull\n"
+    assert parse_ics_candidate(with_trailer, 9) == parse_ics(SAMPLE, 9)
+    assert parse_ics_candidate(SAMPLE + "\r\n NULL \r\n", 9) == parse_ics(SAMPLE, 9)
+    assert parse_ics_candidate(with_trailer + "garbage\n", 9) is None
+    assert parse_ics_candidate(SAMPLE.replace("END:VCALENDAR", "null\nEND:VCALENDAR"), 9) is None
+    assert parse_ics_candidate(SAMPLE + "garbage\nnull\n", 9) is None
+
+
 def test_parse_ics_folding():
     folded = (
         "BEGIN:VCALENDAR\n"
