@@ -1,4 +1,4 @@
-# Calendario Contarina v2.5.6
+# Calendario Contarina v2.5.7
 
 [![Validate](https://github.com/kerdx/Contarina/actions/workflows/validate.yml/badge.svg)](https://github.com/kerdx/Contarina/actions/workflows/validate.yml)
 [![HACS](https://img.shields.io/badge/HACS-integration-blue)](https://hacs.xyz)

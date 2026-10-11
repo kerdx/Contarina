@@ -6,7 +6,18 @@ from pathlib import Path
 import sys as _sys
 
 _PARSER = Path(__file__).resolve().parents[1] / "custom_components" / "contarina" / "parser.py"
-_spec = importlib.util.spec_from_file_location("contarina_parser", _PARSER)
+_WASTE_TYPES = _PARSER.with_name("waste_types.py")
+_package_spec = importlib.util.spec_from_loader("contarina_pure", loader=None)
+assert _package_spec
+_package = importlib.util.module_from_spec(_package_spec)
+_package.__path__ = [str(_PARSER.parent)]
+_sys.modules["contarina_pure"] = _package
+_types_spec = importlib.util.spec_from_file_location("contarina_pure.waste_types", _WASTE_TYPES)
+assert _types_spec and _types_spec.loader
+_types_mod = importlib.util.module_from_spec(_types_spec)
+_sys.modules["contarina_pure.waste_types"] = _types_mod
+_types_spec.loader.exec_module(_types_mod)
+_spec = importlib.util.spec_from_file_location("contarina_pure.parser", _PARSER)
 assert _spec and _spec.loader
 _mod = importlib.util.module_from_spec(_spec)
 _sys.modules["contarina_parser"] = _mod
@@ -168,6 +179,104 @@ END:VEVENT
 END:VCALENDAR
     """
     assert parse_ics_candidate(invalid_dtend, 9) is None
+
+
+def test_candidate_rejects_component_line_without_colon_and_accepts_unknown_property():
+    template = """BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Contarina//EN
+BEGIN:VEVENT
+DTSTART:20260929T060000
+SUMMARY:Giavera del Montello: Umido
+{extra}
+END:VEVENT
+END:VCALENDAR
+"""
+    assert parse_ics_candidate(template.format(extra="BROKEN PROPERTY"), 9) is None
+
+    events = parse_ics_candidate(template.format(extra="X-EXTRA:opaque value"), 9)
+    assert events is not None and len(events) == 1
+
+
+def test_candidate_rejects_invalid_property_name_but_accepts_grouped_property():
+    template = """BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Contarina//EN
+BEGIN:VEVENT
+DTSTART:20260929T060000
+SUMMARY:Giavera del Montello: Umido
+{extra}
+END:VEVENT
+END:VCALENDAR
+"""
+    assert parse_ics_candidate(template.format(extra="BROKEN PROPERTY:foo"), 9) is None
+    assert parse_ics_candidate(template.format(extra="item1.X-EXTRA:opaque value"), 9)
+
+
+def test_parse_ics_candidate_requires_matching_date_value_types():
+    def calendar(start, end):
+        return f"""BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Contarina//EN
+BEGIN:VEVENT\n{start}\n{end}\nSUMMARY:Giavera del Montello: Umido
+END:VEVENT\nEND:VCALENDAR\n"""
+
+    assert parse_ics_candidate(
+        calendar("DTSTART;VALUE=DATE:20260929", "DTEND:20260930T000000"), 9
+    ) is None
+    assert parse_ics_candidate(
+        calendar("DTSTART:20260929T060000", "DTEND;VALUE=DATE:20260929"), 9
+    ) is None
+    assert parse_ics_candidate(
+        calendar("DTSTART;VALUE=DATE:20260929", "DTEND;VALUE=DATE:20260930"), 9
+    )
+    assert parse_ics_candidate(
+        calendar("DTSTART:20260929T060000", "DTEND:20260929T070000"), 9
+    )
+
+
+def test_candidate_accepts_timezone_and_alarm_components():
+    content = """BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Contarina//EN
+BEGIN:VTIMEZONE
+TZID:Europe/Rome
+BEGIN:STANDARD
+DTSTART:20261025T030000
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+END:STANDARD
+BEGIN:DAYLIGHT
+DTSTART:20260329T020000
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+END:DAYLIGHT
+END:VTIMEZONE
+BEGIN:VEVENT
+DTSTART:20260929T060000
+SUMMARY:Giavera del Montello: Umido
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-PT1H
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+END:VCALENDAR
+"""
+    events = parse_ics_candidate(content, 9)
+    assert events is not None and len(events) == 1
+
+
+def test_candidate_rejects_malformed_envelopes_and_components():
+    base = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Contarina//EN\n{}\nEND:VCALENDAR\n"
+    assert parse_ics_candidate(base.format(
+        "BEGIN:VEVENT\nSUMMARY:Umido\nBEGIN:VALARM\nACTION:DISPLAY\nEND:VEVENT"
+    ), 9) is None
+    assert parse_ics_candidate(base.format(
+        "BEGIN:VTIMEZONE\nTZID:Europe/Rome\nBEGIN:STANDARD\nEND:VTIMEZONE"
+    ), 9) is None
+    assert parse_ics_candidate(
+        "VERSION:2.0\nPRODID:-//Contarina//EN\n" + base.format(""), 9
+    ) is None
+    assert parse_ics_candidate(base.format("") + "BEGIN:VCALENDAR\nEND:VCALENDAR\n", 9) is None
 
 
 def test_parse_ics_keeps_repeated_dst_hour_order_by_utc_instant():

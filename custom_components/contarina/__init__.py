@@ -29,7 +29,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+    entry.async_on_unload(entry.add_update_listener(async_options_updated))
 
     # Refresh garantito dopo mezzanotte: ricalcola "oggi/domani" e riallinea
     # anche se l'intervallo 12h non cade esattamente a cavallo della mezzanotte.
@@ -49,8 +49,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    await hass.config_entries.async_reload(entry.entry_id)
+async def async_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Ricalcola le entità con le nuove opzioni senza ricreare il coordinator."""
+    coordinator: ContarinaCoordinator | None = hass.data.get(DOMAIN, {}).get(
+        entry.entry_id
+    )
+    if coordinator is not None:
+        coordinator.async_update_listeners()
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:

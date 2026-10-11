@@ -52,6 +52,5 @@ class ContarinaFilterSwitch(CoordinatorEntity[ContarinaCoordinator], SwitchEntit
         new_options = dict(self._entry.options)
         new_options[self._key] = value
         self.hass.config_entries.async_update_entry(self._entry, options=new_options)
-        # Il reload (update listener in __init__.py) ricrea il coordinator;
-        # aggiorniamo comunque i listener per un feedback immediato.
+        # Feedback immediato; l'update listener applica le opzioni a tutte le entità.
         self.coordinator.async_update_listeners()

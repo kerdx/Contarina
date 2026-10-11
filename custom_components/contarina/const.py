@@ -1,12 +1,18 @@
 """Costanti per l'integrazione Contarina."""
 
+from .waste_types import (
+    CONF_CARTA,
+    CONF_SECCO,
+    CONF_UMIDO,
+    CONF_VEGETALE,
+    CONF_VPL,
+    WASTE_LABELS,
+    WASTE_TYPES as _WASTE_TYPES,
+)
+
 DOMAIN = "contarina"
 
-CONF_SECCO = "secco"
-CONF_UMIDO = "umido"
-CONF_CARTA = "carta"
-CONF_VPL = "vpl"
-CONF_VEGETALE = "vegetale"
+WASTE_TYPES: list[str] = list(_WASTE_TYPES)
 
 API_URL_TEMPLATE = "https://contarina.it/api/?query=genera_ics_calendari&zona={zona}&time=0700"
 
@@ -16,17 +22,6 @@ UPDATE_INTERVAL_HOURS = 12
 
 # Timeout HTTP
 REQUEST_TIMEOUT = 30
-
-# Tipi rifiuto gestiti, label canoniche come appaiono nel SUMMARY Contarina
-WASTE_TYPES: list[str] = [CONF_SECCO, CONF_UMIDO, CONF_CARTA, CONF_VPL, CONF_VEGETALE]
-
-WASTE_LABELS: dict[str, str] = {
-    CONF_SECCO: "Secco",
-    CONF_UMIDO: "Umido",
-    CONF_CARTA: "Carta",
-    CONF_VPL: "VPL",
-    CONF_VEGETALE: "Vegetale",
-}
 
 WASTE_ICONS: dict[str, str] = {
     CONF_SECCO: "mdi:trash-can",

@@ -11,6 +11,11 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from .waste_types import (
+    WASTE_LABELS as _CANONICAL_LABELS,
+    WASTE_TYPES as _CANONICAL_ORDER,
+)
+
 _LOGGER = logging.getLogger(__name__)
 
 ROME_TZ = ZoneInfo("Europe/Rome")
@@ -18,17 +23,9 @@ ROME_TZ = ZoneInfo("Europe/Rome")
 _SUMMARY_ESCAPE_RE = re.compile(r"\\([nN,;\\])")
 _DATE_RE = re.compile(r"\d{8}")
 _DATE_TIME_RE = re.compile(r"\d{8}T\d{6}Z?")
+_PROPERTY_NAME_RE = re.compile(r"[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)?\Z", re.ASCII)
 
-# Queste label devono restare sincronizzate con const.WASTE_LABELS,
-# ma le duplichiamo qui per non importare HA. Mappa key -> label.
-_CANONICAL_LABELS: dict[str, str] = {
-    "secco": "Secco",
-    "umido": "Umido",
-    "carta": "Carta",
-    "vpl": "VPL",
-    "vegetale": "Vegetale",
-}
-_CANONICAL_ORDER: tuple[str, ...] = ("secco", "umido", "carta", "vpl", "vegetale")
+_DATE_ONLY = "DATE"
 
 
 @dataclass(frozen=True)
@@ -48,65 +45,80 @@ def _unfold_ics(content: str) -> str:
 
 
 def _extract_event_blocks(content: str) -> tuple[list[str], bool]:
-    """Estrae gli eventi e verifica l'involucro VCALENDAR/VEVENT.
-
-    Le righe BEGIN/END sono case-insensitive secondo RFC5545. I componenti
-    annidati diversi da VEVENT (ad esempio VALARM) restano nel relativo blocco.
-    """
+    """Estrae gli eventi e valida struttura e annidamento RFC5545."""
     lines = _unfold_ics(content.lstrip("\ufeff")).splitlines()
-    calendar_begins = [
-        i for i, line in enumerate(lines) if line.strip().upper() == "BEGIN:VCALENDAR"
-    ]
-    calendar_ends = [
-        i for i, line in enumerate(lines) if line.strip().upper() == "END:VCALENDAR"
-    ]
-    has_calendar_envelope = (
-        len(calendar_begins) == 1
-        and len(calendar_ends) == 1
-        and calendar_begins[0] < calendar_ends[0]
-    )
-    if has_calendar_envelope:
-        calendar_properties = [
-            line.strip().upper()
-            for line in lines[calendar_begins[0] + 1 : calendar_ends[0]]
-        ]
-        has_calendar_envelope = (
-            "VERSION:2.0" in calendar_properties
-            and any(line.startswith("PRODID:") for line in calendar_properties)
-        )
-
     blocks: list[str] = []
-    event_positions: list[tuple[int, int]] = []
-    current: list[str] | None = None
-    event_start: int | None = None
-    well_formed_events = True
-    for index, line in enumerate(lines):
-        marker = line.strip().upper()
-        if marker == "BEGIN:VEVENT":
-            if current is not None:
-                well_formed_events = False
-                continue
-            current = []
-            event_start = index
-        elif marker == "END:VEVENT":
-            if current is None or event_start is None:
-                well_formed_events = False
-                continue
-            blocks.append("\n".join(current))
-            event_positions.append((event_start, index))
-            current = None
-            event_start = None
-        elif current is not None:
-            current.append(line)
+    stack: list[str] = []
+    current_event: list[str] | None = None
+    root_properties: set[str] = set()
+    valid = True
+    root_count = 0
+    root_closed = False
+    allowed = {
+        "VCALENDAR": {"VEVENT", "VTODO", "VJOURNAL", "VFREEBUSY", "VTIMEZONE"},
+        "VEVENT": {"VALARM"}, "VTODO": {"VALARM"},
+        "VTIMEZONE": {"STANDARD", "DAYLIGHT"},
+    }
 
-    if current is not None:
-        well_formed_events = False
+    for line in lines:
+        text = line.strip()
+        if not text:
+            continue
+        marker = text.upper()
+        if marker.startswith("BEGIN:"):
+            component = marker[6:]
+            if not component:
+                valid = False
+                continue
+            if not stack:
+                if component != "VCALENDAR" or root_count or root_closed:
+                    valid = False
+                root_count += 1
+            else:
+                parent = stack[-1]
+                if component not in allowed.get(parent, set()) and not component.startswith("X-"):
+                    valid = False
+            stack.append(component)
+            if component == "VEVENT":
+                if current_event is not None:
+                    valid = False
+                current_event = []
+            elif current_event is not None:
+                current_event.append(line)
+            continue
+        if marker.startswith("END:"):
+            component = marker[4:]
+            if not stack or stack[-1] != component:
+                valid = False
+                continue
+            if component == "VEVENT" and current_event is not None:
+                blocks.append("\n".join(current_event))
+                current_event = None
+            elif current_event is not None:
+                current_event.append(line)
+            stack.pop()
+            if component == "VCALENDAR":
+                root_closed = True
+            continue
+        if not stack:
+            valid = False
+        else:
+            # Ogni riga non vuota in un componente deve essere una content-line
+            # (nome non vuoto seguito dal separatore ':'). Le righe strutturali
+            # BEGIN/END sono gestite sopra.
+            prop = _parse_property(text)
+            if prop is None or not prop[0]:
+                valid = False
+            elif len(stack) == 1 and stack[0] == "VCALENDAR":
+                root_properties.add(f"{prop[0]}:{prop[2]}".upper())
+        if current_event is not None:
+            current_event.append(line)
 
-    events_inside_calendar = has_calendar_envelope and all(
-        calendar_begins[0] < begin < end < calendar_ends[0]
-        for begin, end in event_positions
+    valid = valid and not stack and current_event is None and root_count == 1 and root_closed
+    valid = valid and "VERSION:2.0" in root_properties and any(
+        item.startswith("PRODID:") for item in root_properties
     )
-    return blocks, well_formed_events and events_inside_calendar
+    return blocks, valid
 
 
 def _parse_property(line: str) -> tuple[str, dict[str, str], str] | None:
@@ -117,7 +129,10 @@ def _parse_property(line: str) -> tuple[str, dict[str, str], str] | None:
 
     parts = head.split(";")
     # RFC5545 consente i gruppi opzionali, per esempio item1.DTSTART.
-    name = parts[0].rsplit(".", 1)[-1].upper()
+    qualified_name = parts[0]
+    if not _PROPERTY_NAME_RE.fullmatch(qualified_name):
+        return None
+    name = qualified_name.rsplit(".", 1)[-1].upper()
     params: dict[str, str] = {}
     for part in parts[1:]:
         key, equals, param_value = part.partition("=")
@@ -244,6 +259,17 @@ def _parse_ics_events(
 
         end_property = properties.get("DTEND")
         if end_property is not None:
+            start_is_date = (
+                start_property[0].get("VALUE", "").upper() == _DATE_ONLY
+                or bool(_DATE_RE.fullmatch(start_property[1].strip()))
+            )
+            end_is_date = (
+                end_property[0].get("VALUE", "").upper() == _DATE_ONLY
+                or bool(_DATE_RE.fullmatch(end_property[1].strip()))
+            )
+            if start_is_date != end_is_date:
+                malformed_recognized_event = True
+                continue
             end = _parse_dt(end_property[1], end_property[0])
             if end is None or end.astimezone(UTC) <= start.astimezone(UTC):
                 malformed_recognized_event = True
